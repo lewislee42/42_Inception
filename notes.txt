@@ -1,0 +1,51 @@
+
+things they want us to do in this project
+install a vm to run the docker
+the containers must be built using the penultimate stable version for either Alpine or Debian
+write one docker file per service
+
+you have to set up
+a docker container that contains NGINX TLSv (1.2 or 1.3 only)
+a docker container that contains WordPress + php-fpm (must be installed and configured) (without nginx)
+a docker container that contains MariaDB (without nginx)
+a docker volume that contains WordPress database
+a docker volume that contains WordPress website files
+a docker network to connecting everything together
+
+(docker containers have to restart if a crash happens)
+read about PID 1 and the best practices for writing dockerfiles
+
+in the wordpress volume must be 2 users where 1 of them is a admin (Disclaimer: you cannot have the word admin in any of the users name)
+
+# NOT ALLOWED
+  the latest tag is not allowed
+  no password should be in your dockerfiles
+  it is forbidden to pull ready made docker images
+
+it is mandotory to use environmental variables (use env)
+use docker secrets if possible
+
+  dockerfile must be called from the docker compose file by your makefile (needs clarification) (make file to docker compose)
+(CAUTION 1 NEED CLARIFICATION)
+  Of course, using network:  host or --link or links:  is forbidden.
+  The network line must be present in your docker-compose.yml file.
+  Your containers musn’t be started with a command running an infinite
+  loop.  Thus, this also applies to any command used as entrypoint, or
+  used in entrypoint scripts.  The following are a few prohibited hacky
+  patches:  tail -f, bash, sleep infinity, while true.
+
+(NEED CLARIFICATION)
+  Your volumes will be available in the /home/login/data folder of the
+  host machine using Docker.  Of course, you have to replace the login
+  with yours.
+  configure the domain name to point to you local ip address
+  the domain name must be login.42.fr
+
+(NEED CLARIFICATION)
+  This domain name must be login.42.fr. Again, you have to use your own login.
+  For example, if your login is wil, wil.42.fr will redirect to the IP address pointing to wil’s website.
+
+(NEED CLARIFICATION)
+  Your NGINX container must be the only entrypoint into your
+  infrastructure via the port 443 only, using the TLSv1.2 or TLSv1.3
+  protocol.

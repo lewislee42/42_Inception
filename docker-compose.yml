@@ -1,0 +1,3 @@
+networks:
+  inception-network:
+    driver: bridge
