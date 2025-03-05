@@ -7,7 +7,7 @@ RUN apt-get update -y && apt-get install mariadb-server -y
 COPY ./scripts/script.sh /
 
 # copy over our configuration
-COPY ./scripts/50-server.cnf /etc/mysql/mariadb.conf.d/
+#COPY ./scripts/50-server.cnf /etc/mysql/mariadb.conf.d/
 
 # create a directory for mysqld to run
 RUN mkdir /var/run/mysqld
