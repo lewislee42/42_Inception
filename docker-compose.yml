@@ -12,14 +12,16 @@ services:
       - DB_NAME=${DB_NAME}
     networks:
       - inception-network
-    wordpress:
-      container_name: inception-wordpress
-      build: ./requirements/wordpress
-      restart: always
-      env_file:
-        - .env
-      networks:
-        - inception-network
+  wordpress:
+    container_name: inception-wordpress
+    build: ./requirements/wordpress
+      #restart: always
+    volumes:
+      - wordpress:/var/www/html
+    env_file:
+      - .env
+    networks:
+      - inception-network
 
 volumes:
   mariadb:

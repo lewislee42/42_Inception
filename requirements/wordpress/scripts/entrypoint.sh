@@ -1,18 +1,12 @@
 #!/bin/bash
 
-mkdir /var/www/
-mkdir /var/www/html
+wp core config --dbname=$DB_NAME --dbuser=$DB_USER --dbpass=$DB_PASS --allow-root --path=/var/www/html/
 
-cd /var/www/html
+wp core install --url=$DOMAIN_NAME/ --title=$WP_TITLE --admin_user=$WP_ADMIN_USER --admin_password=$WP_ADMIN_PASS --admin_email=$WP_ADMIN_EMAIL --skip-email --allow-root --path=/var/www/html/
 
-rm -rf *
+wp user create $WP_USER_LOGIN $WP_USER_EMAIL --user_pass=$WP_USER_PASS --role=author --allow-root --path=/var/www/html/
 
-curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar 
 
-chmod +x wp-cli.phar 
 
-mv wp-cli.phar /usr/local/bin/wp
-
-wp core download --allow-root
-
-/usr/sbin/php-fpm7.3 -F
+#/usr/sbin/php-fpm7.3 -F
+tail -f /dev/null
