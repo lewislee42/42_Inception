@@ -1,9 +1,11 @@
 FROM debian:bullseye
 
-RUN apt-get update -y && apt-get install curl php-fpm php-mysql -y
+RUN apt-get update -y \
+  && apt-get install -y curl php-fpm php-mysql \
+  && rm -rf /var/lib/apt/lists/*
 
-COPY ./scripts/script.sh
+COPY ./scripts/entrypoint.sh
 
-RUN chmod 0777 /script.sh
+RUN chmod 0777 /entrypoint.sh
 
-CMD ["/script.sh"]
+CMD ["/entrypoint.sh"]

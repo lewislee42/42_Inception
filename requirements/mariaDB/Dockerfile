@@ -1,10 +1,10 @@
 FROM debian:bullseye
 
 # install mariadb
-RUN apt-get update -y && apt-get install mariadb-server -y
+RUN apt-get update -y && apt-get install mariadb-server -y && rm -rf /var/lib/apt/lists/*
 
 # copy our script to create our init.sql
-COPY ./scripts/script.sh /
+COPY ./scripts/entrypoint.sh /
 
 # copy over our configuration
 #COPY ./scripts/50-server.cnf /etc/mysql/mariadb.conf.d/
@@ -16,8 +16,8 @@ RUN mkdir /var/run/mysqld
 RUN chmod 0777 /var/run/mysqld
 
 # change the permission of our script so it can run
-RUN chmod 0777 ./script.sh
+RUN chmod 0777 ./entrypoint.sh
 
 # run our script
-CMD ["/script.sh"]
+CMD ["/entrypoint.sh"]
 

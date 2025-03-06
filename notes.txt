@@ -49,3 +49,271 @@ use docker secrets if possible
   Your NGINX container must be the only entrypoint into your
   infrastructure via the port 443 only, using the TLSv1.2 or TLSv1.3
   protocol.
+
+
+wordpress
+✅ Changing the user to root makes administration easy but is a security risk.
+✅ Changing the bind address to 0.0.0.0 allows remote connections but should be secured with firewall rules.
+
+
+
+
+
+Got it! Since your project specifies WordPress with PHP-FPM in one Docker container and Nginx in a separate container (without using pre-built images like `wordpress:latest`), we’ll build a custom WordPress container with PHP-FPM and exclude Nginx. Nginx will be handled in its own container, and we’ll use `docker-compose` to connect them with MariaDB, volumes, and a network. This aligns with your requirement to build from a `Dockerfile` without relying on pre-built WordPress images.
+
+Here’s how to install WordPress with PHP-FPM in a Docker container, leaving Nginx out for a separate setup.
+
+---
+
+### Approach
+- **WordPress Container**: Build a custom image with Debian, PHP-FPM, and WordPress.
+- **Nginx Container**: Build a separate custom image for Nginx with TLS.
+- **MariaDB Container**: Use a base image (or build it too if you prefer).
+- **Docker Compose**: Orchestrate all three with volumes and a network.
+- **Makefile**: Automate the build/run process.
+
+---
+
+### Step-by-Step Guide
+
+#### Step 1: Create the WordPress/PHP-FPM Dockerfile
+- **File**: `wordpress/Dockerfile` (in a `wordpress` subdirectory).
+- **Content**: Install PHP-FPM and WordPress, no Nginx.
+```dockerfile
+# Start from Debian Bullseye
+FROM debian:bullseye
+
+# Install PHP-FPM and dependencies
+RUN apt-get update && apt-get install -y \
+    php-fpm \
+    php-mysql \
+    php-curl \
+    php-gd \
+    php-mbstring \
+    php-xml \
+    php-imagick \
+    php-zip \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download and install WordPress
+RUN wget https://wordpress.org/latest.tar.gz -O /tmp/wordpress.tar.gz \
+    && tar -xzf /tmp/wordpress.tar.gz -C /var/www/ \
+    && mv /var/www/wordpress /var/www/wordpress-site \
+    && rm /tmp/wordpress.tar.gz \
+    && chown -R www-data:www-data /var/www/wordpress-site \
+    && chmod -R 755 /var/www/wordpress-site
+
+# Configure PHP-FPM to listen on a TCP port (for Nginx in another container)
+RUN sed -i 's/listen = \/run\/php\/php7.4-fpm.sock/listen = 0.0.0.0:9000/' /etc/php/7.4/fpm/pool.d/www.conf \
+    && sed -i 's/;listen.owner = www-data/listen.owner = www-data/' /etc/php/7.4/fpm/pool.d/www.conf \
+    && sed -i 's/;listen.group = www-data/listen.group = www-data/' /etc/php/7.4/fpm/pool.d/www.conf
+
+# Expose PHP-FPM port
+EXPOSE 9000
+
+# Start PHP-FPM
+CMD ["php-fpm7.4", "-F"]
+```
+- **Notes**:
+  - Uses `debian:bullseye` as the base (no pre-built WordPress image).
+  - Installs PHP-FPM and WordPress from `latest.tar.gz`.
+  - Changes PHP-FPM to listen on `0.0.0.0:9000` (TCP) instead of a socket, so Nginx can connect from another container.
+  - `CMD` runs PHP-FPM in the foreground.
+
+#### Step 2: Create the Nginx Dockerfile
+- **File**: `nginx/Dockerfile` (in an `nginx` subdirectory).
+- **Content**: Install Nginx with TLS, no WordPress.
+```dockerfile
+FROM debian:bullseye
+
+# Install Nginx and OpenSSL
+RUN apt-get update && apt-get install -y \
+    nginx \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Generate self-signed TLS certificates
+RUN mkdir -p /etc/nginx/ssl \
+    && openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+       -keyout /etc/nginx/ssl/key.pem \
+       -out /etc/nginx/ssl/cert.pem \
+       -subj "/CN=login.42.fr"
+
+# Copy Nginx configuration
+COPY nginx.conf /etc/nginx/sites-available/wordpress
+RUN ln -s /etc/nginx/sites-available/wordpress /etc/nginx/sites-enabled/ \
+    && rm /etc/nginx/sites-enabled/default
+
+# Expose HTTPS port
+EXPOSE 443
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+#### Step 3: Create Nginx Configuration
+- **File**: `nginx/nginx.conf`.
+```nginx
+server {
+    listen 443 ssl;
+    server_name login.42.fr;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_certificate /etc/nginx/ssl/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/key.pem;
+
+    location / {
+        proxy_pass http://wordpress:9000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location ~ \.php$ {
+        proxy_pass http://wordpress:9000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        fastcgi_param SCRIPT_FILENAME /var/www/wordpress-site$fastcgi_script_name;
+    }
+}
+server {
+    listen 80;
+    server_name login.42.fr;
+    return 301 https://$host$request_uri;
+}
+```
+- **Notes**: Proxies to the WordPress container’s PHP-FPM on port 9000, handles TLS.
+
+#### Step 4: Set Up `docker-compose.yml`
+- **File**: `docker-compose.yml` (in the root directory).
+```yaml
+version: '3'
+services:
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "443:443"
+      - "80:80"
+    depends_on:
+      - wordpress
+    networks:
+      - app-network
+
+  wordpress:
+    build:
+      context: ./wordpress
+      dockerfile: Dockerfile
+    volumes:
+      - wordpress-files:/var/www/wordpress-site
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: mariadb:10.5  # Could build this too, but using image for simplicity
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wpuser
+      MYSQL_PASSWORD: wppass
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - app-network
+
+volumes:
+  db-data:
+  wordpress-files:
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+#### Step 5: Create a `Makefile`
+- **File**: `Makefile` (in the root directory).
+```makefile
+all: build up
+
+build:
+    docker-compose build
+
+up:
+    docker-compose up -d
+
+down:
+    docker-compose down
+```
+
+#### Step 6: Directory Structure
+```
+project/
+├── nginx/
+│   ├── Dockerfile
+│   └── nginx.conf
+├── wordpress/
+│   └── Dockerfile
+├── docker-compose.yml
+└── Makefile
+```
+
+#### Step 7: Build and Run
+1. **Build the images**:
+   ```
+   make build
+   ```
+2. **Start the containers**:
+   ```
+   make up
+   ```
+3. **Check logs**:
+   ```
+   docker-compose logs
+   ```
+
+#### Step 8: Configure WordPress
+1. **Edit `/etc/hosts` on the VM**:
+   ```
+   echo "127.0.0.1 login.42.fr" | sudo tee -a /etc/hosts
+   ```
+2. **Access**:
+   - Visit `https://login.42.fr` (use `-k` with `curl` or port forward in VirtualBox).
+   - Configure via the browser:
+     - Database Name: `wordpress`
+     - Username: `wpuser`
+     - Password: `wppass`
+     - Host: `db`
+
+---
+
+### Notes for Your Project
+- **No Pre-Built WordPress Image**: The `wordpress/Dockerfile` builds WordPress from scratch with PHP-FPM.
+- **Nginx Separate**: Handled in its own container with TLSv1.2/1.3.
+- **Volumes**: `wordpress-files` persists WordPress files; `db-data` for MariaDB.
+- **Network**: `app-network` connects everything.
+- **MariaDB**: Uses `mariadb:10.5` for simplicity, but you could build it too:
+  ```dockerfile
+  FROM debian:bullseye
+  RUN apt-get update && apt-get install -y mariadb-server
+  CMD ["mysqld"]
+  ```
+
+---
+
+### Why This Works
+- Avoids `wordpress:latest` or similar pre-built images.
+- Meets your requirement to use a `Dockerfile` (for WordPress and Nginx).
+- Separates Nginx from WordPress/PHP-FPM as specified.
+
+---
+
+### Next Steps
+- **Redirection**: Add logic for `login.42.fr` → `<username>.42.fr` (e.g., Nginx rewrite or WordPress plugin).
+- **Troubleshooting**: If PHP-FPM doesn’t connect, check logs (`docker-compose logs wordpress`).
+
+Want me to refine the redirection part or test a specific piece? Let me know!
