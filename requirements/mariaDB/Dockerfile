@@ -20,4 +20,5 @@ RUN chmod 0777 ./entrypoint.sh
 
 # run our script
 CMD ["/entrypoint.sh"]
+#CMD ["tail", "-f", "/dev/null"]
 
