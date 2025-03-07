@@ -23,5 +23,5 @@ RUN mv /var/www/html/wp-cli.phar /usr/local/bin/wp
 # find safer method if possible
 RUN wp core download --allow-root --path=/var/www/html/
 
-#CMD ["tail", "-f", "/dev/null"]
-CMD ["/entrypoint.sh"]
+CMD ["tail", "-f", "/dev/null"]
+#CMD ["/entrypoint.sh"]

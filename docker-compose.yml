@@ -10,12 +10,22 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
       - DB_NAME=${DB_NAME}
+        #healthcheck:
+        #test: ["CMD-SHELL", "mariadb-admin --user=$${DB_USER} --pass=$${DB_PASS} --host=localhost ping"]
+      #start_period: 60s
+      #start_interval: 15s
+      #interval: 30s
+      #timeout: 5s
+      #retries: 10
     networks:
       - inception-network
   wordpress:
     container_name: inception-wordpress
     build: ./requirements/wordpress
       #restart: always
+      #depends_on:
+      #mariadb:
+      #condition: service_healthy
     volumes:
       - wordpress:/var/www/html
     env_file:
