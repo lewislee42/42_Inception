@@ -1,0 +1,15 @@
+server {
+	listen: 443;
+	server-name: *.42.fr;
+	
+	ssl_protocols TLSv1.2 TLSv1.3;
+
+	access_log /var/log/nginx/access.log;
+	error_log /var/log/nginx/error.log;
+
+	location / {
+		proxy_pass: wordpress; 
+	}
+}
+	
+

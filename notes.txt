@@ -53,3 +53,8 @@ use docker secrets if possible
 
 root@ce1aeea182e3:/# wp config create --dbname=$DB_NAME --dbuser=$DB_USER --dbpass=$DB_PASS --dbhost=mariadb --path=/var/www/html/ --allow-root
 PHP Warning:  file_get_contents(phar://wp-cli.phar/vendor/wp-cli/wp-cli/templates/phar://usr/local/bin/wp/vendor/wp-cli/config-command/templates/wp-config.mustache): failed to open stream: phar error: "vendor/wp-cli/wp-cli/templates/phar:/usr/local/bin/wp/vendor/wp-cli/config-command/templates/wp-config.mustache" is not a file in phar "wp-cli.phar" in phar:///usr/local/bin/wp/vendor/wp-cli/wp-cli/php/utils.php on line 608
+
+
+need to add a none root user to mariadb container & wordpress container
+mariadb container to install mariadb??
+wordpress container to install wordpress without the allow root flag

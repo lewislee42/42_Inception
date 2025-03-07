@@ -31,6 +31,14 @@ services:
       - .env
     networks:
       - inception-network
+  nginx:
+    container_name: inception-nginx
+    build: ./requirements/nginx
+    #restart: always
+    env_file: # not sure if its used yet
+      - .env
+    networks:
+      - inception-network
 
 volumes:
   mariadb:
