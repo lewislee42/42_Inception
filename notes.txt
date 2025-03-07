@@ -14,7 +14,6 @@ a docker network to connecting everything together
 
 (docker containers have to restart if a crash happens)
 read about PID 1 and the best practices for writing dockerfiles
-
 in the wordpress volume must be 2 users where 1 of them is a admin (Disclaimer: you cannot have the word admin in any of the users name)
 
 # NOT ALLOWED
@@ -52,9 +51,44 @@ use docker secrets if possible
 
 
 root@ce1aeea182e3:/# wp config create --dbname=$DB_NAME --dbuser=$DB_USER --dbpass=$DB_PASS --dbhost=mariadb --path=/var/www/html/ --allow-root
-PHP Warning:  file_get_contents(phar://wp-cli.phar/vendor/wp-cli/wp-cli/templates/phar://usr/local/bin/wp/vendor/wp-cli/config-command/templates/wp-config.mustache): failed to open stream: phar error: "vendor/wp-cli/wp-cli/templates/phar:/usr/local/bin/wp/vendor/wp-cli/config-command/templates/wp-config.mustache" is not a file in phar "wp-cli.phar" in phar:///usr/local/bin/wp/vendor/wp-cli/wp-cli/php/utils.php on line 608
+PHP Warning:  file_get_contents(phar://wp-cli.phar/vendor/wp-cli/wp-cli/templates/phar://usr/local/bin/wp/vendor/wp-cli/config-command/templates/wp-config.mustache): failed to open stream: phar error: "vendor/wp-cli/wp-cli/templates/phar:/usr/local/bin/wp/vendor/wp-cli/config-command/templates/wp-config.mustache" is not a file in phar "wp-cli.phar" in phar:///usr/local/bin/wp/vendor/wp-cli/wp-cli/php/utils.php on line 607
 
+What’s Missing or Needs Adding
 
-need to add a none root user to mariadb container & wordpress container
-mariadb container to install mariadb??
-wordpress container to install wordpress without the allow root flag
+SSL/TLS Essentials:
+Certificates: NGINX needs SSL certificates (public key and private key) to enable HTTPS. Without them, TLS won’t work, and 443 will fail.
+Add: Settings to specify certificate file paths (e.g., ssl_certificate and ssl_certificate_key).
+Why: Defines the encryption keys for TLSv1.2/1.3.
+SSL on Listen: The listen directive needs ssl to activate TLS.
+Adjust: Change to include ssl (e.g., listen 443 ssl;).
+Why: Ensures NGINX uses SSL/TLS on 443.
+Proper Proxy Configuration:
+Target Definition: proxy_pass wordpress; is vague—NGINX needs a specific endpoint (e.g., http://wordpress:9000) matching your WordPress container’s PHP-FPM port.
+Add/Adjust: Define the proxy target with the correct scheme (HTTP) and port (9000), reflecting your wordpress service.
+Why: Ensures requests reach PHP-FPM correctly.
+Proxy Headers: Basic proxying might work, but WordPress needs additional headers (e.g., Host, URI) for proper routing.
+Add: Directives to pass essential headers (e.g., proxy_set_header for Host, X-Real-IP).
+Why: Helps WordPress process requests as if directly accessed.
+Blocking Other Ports:
+Docker-Level: This config only listens on 443, but doesn’t block 80 explicitly. If port 80 is exposed elsewhere (e.g., another server block or Docker mapping), it’s still open.
+Add: A separate block to redirect 80 to 443, or ensure Docker exposes only 443.
+Why: Enforces “443-only” at the application level.
+Host-Level: Relies on Docker or host firewall to block other ports (e.g., 80, 9000).
+Ensure: No other ports are mapped in Docker Compose for NGINX.
+WordPress-Specific Handling:
+PHP Files: This setup proxies everything to WordPress, but WordPress uses PHP-FPM for .php files and serves static files directly (e.g., CSS, images).
+Add: A location block to handle .php files specifically (like your prior config), or adjust proxy_pass to an upstream that differentiates.
+Why: Ensures static assets aren’t unnecessarily proxied.
+Root Directory: No root defined—static files need a base path (e.g., /var/www/wordpress-site).
+Add: A root directive if serving static content alongside proxying.
+Security and Optimization:
+Cipher Suites: TLSv1.2/1.3 work better with modern ciphers for security and speed.
+Add: A setting to define preferred ciphers (e.g., ssl_ciphers).
+Why: Enhances TLS security.
+HTTP/2: TLSv1.3 pairs well with HTTP/2 for performance.
+Add: Enable HTTP/2 on the listen directive (e.g., listen 443 ssl http2;).
+Why: Boosts speed for HTTPS traffic.
+Error Handling:
+404 Fallback: No fallback if proxying fails (e.g., WordPress container down).
+Add: A try_files or error page directive as a backup.
+Why: Improves user experience on failure.
