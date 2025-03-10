@@ -107,3 +107,117 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg|eot)$ {
     root /path/to/wordpress;
     expires 30d;
 }
+
+things we have to tackle
+domain name does not work cause we need the hosts sudo permissions for changing the host network file to alias lewis.42.fr to localhost
+
+we are getting file not found when entering the website:
+
+
+It looks like you've shared an error log from a web server, likely Nginx, given the format and terminology (e.g., `FastCGI`, `upstream`). Let’s break this down and figure out what’s going on.
+
+### Error Breakdown
+The error message is:
+```
+"Primary script unknown" while reading response header from upstream
+```
+This typically occurs in a setup where Nginx is acting as a reverse proxy, forwarding requests to a FastCGI server (e.g., PHP-FPM) to process dynamic content. The FastCGI server, in this case running at `172.18.0.4:9000`, couldn’t find the script it was supposed to execute.
+
+#### Key Details:
+- **Timestamp**: `2025/03/10 10:32:42` (matches the current date you provided: March 10, 2025).
+- **Client IP**: `172.18.0.1` (likely a local or containerized network IP).
+- **Server Name**: `lewis.42.fr` (the virtual host or domain being accessed).
+- **Request**: `GET / HTTP/2.0` (a basic request for the root page).
+- **Upstream**: `fastcgi://172.18.0.4:9000` (the FastCGI backend server).
+- **Host**: `127.0.0.1` (localhost, possibly indicating a local development setup).
+
+### What’s Happening?
+The `"Primary script unknown"` error from PHP-FPM (assuming that’s the FastCGI service) means that Nginx passed a request to the FastCGI backend, but the backend couldn’t locate the script file (e.g., `index.php`) to process the request. This is often a configuration or file path issue.
+
+### Possible Causes
+1. **Missing or Misconfigured Script File**:
+   - The root directory for `lewis.42.fr` might not have an `index.php` (or equivalent) file, or it’s not in the expected location.
+   - The `SCRIPT_FILENAME` parameter passed by Nginx to FastCGI might be incorrect.
+
+2. **Nginx Configuration Issue**:
+   - The `fastcgi_param SCRIPT_FILENAME` directive in your Nginx config might be misconfigured, pointing to a nonexistent file or directory.
+   - Example of a typical config snippet:
+     ```
+     location ~ \.php$ {
+         fastcgi_pass 172.18.0.4:9000;
+         fastcgi_param SCRIPT_FILENAME /var/www/html/$fastcgi_script_name;
+         include fastcgi_params;
+     }
+     ```
+     If `/var/www/html/` (or your document root) doesn’t match the actual file location, you’ll get this error.
+
+3. **File Permissions**:
+   - The FastCGI process (e.g., PHP-FPM) might not have permission to access the script file or directory.
+
+4. **Container or Network Misconfiguration**:
+   - Since the IPs (`172.18.0.1`, `172.18.0.4`) suggest a Docker or similar containerized setup, there could be a mismatch between the Nginx container and the FastCGI container’s shared volumes or network settings.
+
+### How to Fix It
+Here’s a step-by-step troubleshooting guide:
+
+1. **Check the Document Root**:
+   - Look at your Nginx configuration (e.g., `/etc/nginx/sites-available/lewis.42.fr`) and find the `root` directive. Verify that the directory (e.g., `/var/www/html`) contains the expected script (e.g., `index.php`).
+
+2. **Verify FastCGI Parameters**:
+   - Ensure the `fastcgi_param SCRIPT_FILENAME` is correctly set. For example:
+     ```
+     fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+     ```
+   - Check that `$document_root` resolves to the right path.
+
+3. **Test the File Existence**:
+   - Log into the FastCGI container (`172.18.0.4`) or server and confirm the script exists. For example:
+     ```
+     ls -l /var/www/html/index.php
+     ```
+   - If it’s missing, create a simple `index.php` with `<?php phpinfo();` to test.
+
+4. **Check Permissions**:
+   - Ensure the file and directory are readable by the FastCGI process user (often `www-data` or similar):
+     ```
+     chown www-data:www-data /var/www/html/index.php
+     chmod 644 /var/www/html/index.php
+     ```
+
+5. **Restart Services**:
+   - After making changes, restart Nginx and PHP-FPM:
+     ```
+     systemctl restart nginx
+     systemctl restart php-fpm  # or php7.4-fpm, depending on version
+     ```
+
+6. **Debugging**:
+   - Add `fastcgi_param` logging or enable more detailed PHP-FPM logs to see what file path it’s trying to access. Check `/var/log/php-fpm.log` or similar.
+
+### Example Fix
+If your Nginx config looks like this:
+```
+server {
+    listen 80;
+    server_name lewis.42.fr;
+    root /var/www/html;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass 172.18.0.4:9000;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+```
+- Ensure `/var/www/html/index.php` exists.
+- Test with `curl http://lewis.42.fr` or a browser.
+
+### Need More Help?
+If you share your Nginx config or more context (e.g., are you using Docker?), I can refine the solution further. Let me know!
+
+https://www.google.com/search?client=firefox-b-e&channel=entpr&q=400+Bad+Request+The+plain+HTTP+request+was+sent+to+HTTPS+port

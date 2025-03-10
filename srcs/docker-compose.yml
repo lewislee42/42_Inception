@@ -37,6 +37,8 @@ services:
     #restart: always
     env_file: # not sure if its used yet
       - .env
+    ports:
+      - "443:443"
     networks:
       - inception-network
 
