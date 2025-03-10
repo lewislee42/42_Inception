@@ -92,3 +92,5 @@ Error Handling:
 404 Fallback: No fallback if proxying fails (e.g., WordPress container down).
 Add: A try_files or error page directive as a backup.
 Why: Improves user experience on failure.
+
+
