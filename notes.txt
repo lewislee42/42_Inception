@@ -93,4 +93,17 @@ Error Handling:
 Add: A try_files or error page directive as a backup.
 Why: Improves user experience on failure.
 
+REMINDER TO CLEAR SECRETS FILE
 
+server_name *.42.fr;
+
+    This wildcard means the server block applies to any subdomain of 42.fr (e.g., blog.42.fr, www.42.fr). Ensure your SSL certificate (/cert.pem) is a wildcard certificate covering *.42.fr, or this won’t work.
+
+
+Test the Config: Run nginx -t to validate syntax before reloading.
+WordPress-Specific Location Blocks: For better performance, add rules to serve static files directly instead of proxying to WordPress:
+text
+location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg|eot)$ {
+    root /path/to/wordpress;
+    expires 30d;
+}

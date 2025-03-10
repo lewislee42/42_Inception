@@ -2,7 +2,7 @@ Remember to source the env or find a way to get the users username to get
 the directory
 
 # Generating a dhparam.key for Diffie-Hellman (DH) parameter which is used in ephemeral key exchange when establishing TLS (SSL) connections.
-openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048
+openssl dhparam -out dhparam.pem 2048
 * then move this file to the secrets directory replacing the one already there
 
 # Generating a self-signed cert for running with nginx
