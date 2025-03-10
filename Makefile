@@ -19,8 +19,7 @@ clean:
 
 fclean: clean
 	@sudo rm -rf ~/data/mariadb/* && sudo rm -rf ~/data/wordpress/*
-
-@cp ./secrets/* ./srcs/requirements/nginx/tools/
+	@cp ./secrets/* ./srcs/requirements/nginx/tools/
 
 
 .PHONY = prep fclean clean run
