@@ -3,6 +3,7 @@
 NAME = Inception
 SRCDIR = srcs
 DOCKER_COMPOSE_FILE = docker-compose.yml
+SECRETS_FILES = dhparam.pem cert.pem cert.key
 
 
 all: $(NAME)
@@ -19,7 +20,7 @@ clean:
 
 fclean: clean
 	@sudo rm -rf ~/data/mariadb/* && sudo rm -rf ~/data/wordpress/*
-	@cp ./secrets/* ./srcs/requirements/nginx/tools/
+	@cp $(SECRETS_FILES) ./srcs/requirements/nginx/tools/
 
 
 .PHONY = prep fclean clean run
