@@ -1,16 +1,31 @@
-server {
-	listen: 443 ssl;
-	server_name: *.42.fr;
-	
-	ssl
-	ssl_protocols TLSv1.2 TLSv1.3;
 
-	access_log /var/log/nginx/access.log;
-	error_log /var/log/nginx/error.log;
 
-	location / {
-		proxy_pass:	http://wordpress:9000;
+http {
+	server {
+		listen: 443 ssl;
+		listen: [::]:443 ssl;
+		server_name: *.42.fr;
+		
+		ssl_certificate: /cert.pem
+		ssl_certificate_key: /cert.key
+		ssl_protocols TLSv1.2 TLSv1.3;
+		ssl_ecdh_curve X25519:prime256v1:secp384r1;
+		ssl_cypher
+
+		ssl_prefer_server_cypher off;
+
+		ssl_session_timeout 1d;
+		ssl_session_cache shared:SSLCache:10m;
+
+		adder_header Strict-Transport-Security "max-age=63072000" always;
+
+		access_log /var/log/nginx/access.log;
+		error_log /var/log/nginx/error.log;
+
+		location / {
+			proxy_pass:	http://wordpress:9000;
+			proxy_set_header: Host wordpress:9000;
+		}
 	}
-}
-	
+}	
 
