@@ -16,12 +16,13 @@ prep:
 $(NAME): prep
 	@sudo docker compose -f $(SRCDIR)/$(DOCKER_COMPOSE_FILE) up --build -d
 
+re: fclean all
+
 clean:
 	@sudo docker compose -f $(SRCDIR)/$(DOCKER_COMPOSE_FILE) down
 
 fclean: clean
 	@sudo rm -rf ~/data/mariadb/* && sudo rm -rf ~/data/wordpress/*
-	@sudo rm -rf ./srcs/requirements/nginx/tools/*
 
 
-.PHONY = prep fclean clean run
+.PHONY = prep re clean fclean 
