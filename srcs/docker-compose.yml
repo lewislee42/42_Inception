@@ -12,10 +12,10 @@ services:
       - DB_NAME=${DB_NAME}
     healthcheck:
       test: ["CMD-SHELL", "mariadb-admin --user=$${DB_USER} --pass=$${DB_PASS} --host=localhost ping"]
-      start_interval: 10s
+      start_period: 10s
       interval: 5s
       timeout: 10s
-      retries: 10
+      retries: 3
     networks:
       - inception-network
   wordpress:
@@ -29,6 +29,12 @@ services:
       - wordpress:/var/www/html
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "service php7.4-fpm status | grep running"]
+      start_period: 10s
+      interval: 5s
+      timeout: 10s
+      retries: 3
     networks:
       - inception-network
   nginx:
@@ -39,6 +45,9 @@ services:
       - .env
     ports:
       - "443:443"
+    depends_on:
+      wordpress:
+        condition: service_healthy
     networks:
       - inception-network
 
