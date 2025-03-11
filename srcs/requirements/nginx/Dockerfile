@@ -5,5 +5,6 @@ RUN apt-get update -y && apt-get install nginx -y
 COPY ./conf /etc/nginx/nginx.conf
 COPY ./tools/* /
 
+RUN chmod +x /script.sh
 
-CMD ["tail", "-f", "/dev/null"]
+ENTRYPOINT ["/script.sh"]

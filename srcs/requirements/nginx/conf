@@ -12,7 +12,7 @@ http {
 	ssl_certificate_key /cert.key;
 	ssl_protocols TLSv1.2 TLSv1.3;
 	ssl_ecdh_curve X25519:prime256v1:secp384r1;
-	ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305";
+	ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305;
 	ssl_prefer_server_ciphers off;
 	
 	ssl_dhparam /dhparam.pem;
@@ -20,18 +20,22 @@ http {
 
 	server {
 		listen 443 ssl http2;
-		listen [::]:443 ssl;
+		listen [::]:443 ssl http2;
 		server_name lewis.42.fr;
 
 		add_header Strict-Transport-Security "max-age=63072000" always;
 		add_header X-Content-Type-Options "nosniff" always;
 		add_header X-Frame-Options "DENY" always;
 
-		location / {
+		root /var/www/html;
+
+		location = / {
+			include fastcgi_params;
 			fastcgi_pass wordpress:9000;
 			fastcgi_index index.php;
-			include fastcgi_params;
+			fastcgi_param SCRIPT_FILENAME $document_root/index.php;
 		}
+
 	}
 
 	server {
