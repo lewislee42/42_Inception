@@ -14,8 +14,6 @@ wp user create $WP_USER_LOGIN $WP_USER_EMAIL --user_pass=$WP_USER_PASS --role=au
 
 # modify the settings of the fpm
 sed -i 's/listen = \/run\/php\/php7.4-fpm.sock/listen = 0.0.0.0:9000/1' /etc/php/7.4/fpm/pool.d/www.conf
-sed -i 's/;listen.owner = www-data/listen.owner = www-data/1' /etc/php/7.4/fpm/pool.d/www.conf
-sed -i 's/;listen.group = www-data/listen.group = www-data/1' /etc/php/7.4/fpm/pool.d/www.conf
 
 # make sure this directory exist so that php can run?
 mkdir /run/php
