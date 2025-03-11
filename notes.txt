@@ -221,3 +221,6 @@ server {
 If you share your Nginx config or more context (e.g., are you using Docker?), I can refine the solution further. Let me know!
 
 https://www.google.com/search?client=firefox-b-e&channel=entpr&q=400+Bad+Request+The+plain+HTTP+request+was+sent+to+HTTPS+port
+
+
+have to connect using https://localhost:443 for now but running into errors of page not found
