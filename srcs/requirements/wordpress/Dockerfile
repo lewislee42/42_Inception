@@ -24,12 +24,13 @@ RUN curl -o /var/www/html/wp-cli.phar https://raw.githubusercontent.com/wp-cli/b
 # modify the permissions so that we can run it
 RUN chmod +x /var/www/html/wp-cli.phar
 
-# move the cli into the user local director which then can use as a command
+# move the cli into the user local path which then can use as a command
 RUN mv /var/www/html/wp-cli.phar /usr/local/bin/wp
 
 # find safer method if possible
 RUN wp core download --allow-root --path=/var/www/html/
 
+# copy our website logo over :p
+COPY ./tools/favicon.ico /var/www/html
 
-#CMD ["tail", "-f", "/dev/null"]
 CMD ["/entrypoint.sh"]
