@@ -40,9 +40,11 @@ services:
   nginx:
     container_name: inception-nginx
     build: ./requirements/nginx
-    #restart: always
+    restart: always
     env_file: # not sure if its used yet
       - .env
+    volumes:
+      - wordpress:/var/www/html
     ports:
       - "443:443"
     depends_on:
