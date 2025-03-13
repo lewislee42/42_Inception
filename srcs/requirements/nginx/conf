@@ -44,7 +44,7 @@ http {
 			fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
 		}
 
-		location ~* ^(.+)\.css/$ {
+		location ~* ^(.+)\.(css|ico)/$ {
 			rewrite ^(.+)/$ $1 break;
 			try_files $1 =404;
 		}
