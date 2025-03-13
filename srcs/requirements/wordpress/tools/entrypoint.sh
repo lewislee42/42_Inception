@@ -20,4 +20,3 @@ mkdir /run/php
 
 # this makes it a forground process and not a daemon
 /usr/sbin/php-fpm7.4 -F
-#tail -f /dev/null
