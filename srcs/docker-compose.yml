@@ -6,8 +6,8 @@ services:
     restart: always
     volumes:
       - mariadb:/var/lib/mysql
-    environment:
-      - ../secrets/.env
+    env_file:
+      - .env
     healthcheck:
       test: ["CMD-SHELL", "mariadb-admin --user=$${DB_USER} --pass=$${DB_PASS} --host=localhost ping"]
       start_period: 10s
@@ -26,7 +26,7 @@ services:
       mariadb:
         condition: service_healthy
     env_file:
-      - ../secrets/.env
+      - .env
     healthcheck:
       test: ["CMD-SHELL", "service php7.4-fpm status | grep running"]
       start_period: 10s
@@ -53,13 +53,13 @@ volumes:
   mariadb:
     driver: local
     driver_opts:
-      device: /home/$USERNAME/data/mariadb
+      device: ${USER_HOME}/data/mariadb
       o: bind
       type: none
   wordpress:
     driver: local
     driver_opts:
-      device: /home/$USERNAME/data/wordpress
+      device: ${USER_HOME}/data/wordpress
       o: bind
       type: none
 
