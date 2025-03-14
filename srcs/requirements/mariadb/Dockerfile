@@ -1,7 +1,8 @@
 FROM debian:bullseye
 
 # install mariadb
-RUN apt-get update -y && apt-get install mariadb-server -y && rm -rf /var/lib/apt/lists/*
+RUN apt-get update
+RUN apt-get install mariadb-server -y
 
 # copy our script to create our init.sql
 COPY ./tools/entrypoint.sh /
@@ -17,5 +18,3 @@ RUN chmod 0777 ./entrypoint.sh
 
 # run our script
 CMD ["/entrypoint.sh"]
-#CMD ["tail", "-f", "/dev/null"]
-

@@ -7,9 +7,7 @@ services:
     volumes:
       - mariadb:/var/lib/mysql
     environment:
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - DB_NAME=${DB_NAME}
+      - ../secrets/.env
     healthcheck:
       test: ["CMD-SHELL", "mariadb-admin --user=$${DB_USER} --pass=$${DB_PASS} --host=localhost ping"]
       start_period: 10s
@@ -22,13 +20,13 @@ services:
     container_name: inception-wordpress
     build: ./requirements/wordpress
     restart: always
+    volumes:
+      - wordpress:/var/www/html
     depends_on:
       mariadb:
         condition: service_healthy
-    volumes:
-      - wordpress:/var/www/html
     env_file:
-      - .env
+      - ../secrets/.env
     healthcheck:
       test: ["CMD-SHELL", "service php7.4-fpm status | grep running"]
       start_period: 10s
@@ -41,15 +39,13 @@ services:
     container_name: inception-nginx
     build: ./requirements/nginx
     restart: always
-    env_file: # not sure if its used yet
-      - .env
     volumes:
       - wordpress:/var/www/html
-    ports:
-      - "443:443"
     depends_on:
       wordpress:
         condition: service_healthy
+    ports:
+      - "443:443"
     networks:
       - inception-network
 
