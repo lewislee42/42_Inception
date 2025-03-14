@@ -4,9 +4,9 @@ FROM debian:bullseye
 RUN apt-get update 
 RUN apt-get install nginx -y
 
-# copy our config and script over
+# copy our config, script and certs over
 COPY ./conf /etc/nginx/nginx.conf
-COPY ./tools/script.sh /
+COPY ./tools/* /
 
 # change our script permissions
 RUN chmod +x /script.sh
