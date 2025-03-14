@@ -31,14 +31,14 @@ COPY ./tools/favicon.ico /var/www/html
 COPY ./tools/wp-install-script.sh /
 RUN chmod 0777 /wp-install-script.sh
 
-# change the working directory to /var/www/html
-WORKDIR /var/www/html
-
 # change the php-fpm config to listen to port 9000
 RUN sed -i 's/listen = \/run\/php\/php7.4-fpm.sock/listen = 0.0.0.0:9000/1' /etc/php/7.4/fpm/pool.d/www.conf
 
 # create a temp user to install the wordpress-cli
 RUN useradd -m -s /bin/bash -G sudo,www-data tempUser
+
+# change the working directory to /var/www/html
+WORKDIR /var/www/html
 
 # runs our script as tempUser instead of running on root
 CMD ["bash", "-c", "su tempUser -c '/wp-install-script.sh' && /usr/sbin/php-fpm7.4 -F"]
