@@ -19,10 +19,10 @@ DOMAIN_NAME = lewis.42.fr
 all: $(NAME)
 
 generate_certs:
-	bash -c "if [[ ! -f ./secrets/dhparam.pem || ! -f ./secrets/cert.pem || ! -f ./secrets/cert.key ]]; then rm ./secrets/*; openssl dhparam -out ./secrets/dhparam.pem 2048; openssl req -new -newkey rsa:2048 -nodes -keyout secrets/cert.key -out secrets/cert.csr -subj '/C=MY/ST=Selangor/L=Subang/O=My Company/OU=IT/CN=$(DOMAIN_NAME)'; openssl x509 -req -days 3650 -in secrets/cert.csr -signkey secrets/cert.key -out secrets/cert.pem; rm secrets/cert.csr; cp ./secrets/* ./srcs/requirements/nginx/tools/; fi"
+	@bash -c "if [[ ! -f ./secrets/dhparam.pem || ! -f ./secrets/cert.pem || ! -f ./secrets/cert.key ]]; then rm ./secrets/*; openssl dhparam -out ./secrets/dhparam.pem 2048; openssl req -new -newkey rsa:2048 -nodes -keyout secrets/cert.key -out secrets/cert.csr -subj '/C=MY/ST=Selangor/L=Subang/O=My Company/OU=IT/CN=$(DOMAIN_NAME)'; openssl x509 -req -days 3650 -in secrets/cert.csr -signkey secrets/cert.key -out secrets/cert.pem; rm secrets/cert.csr; cp ./secrets/* ./srcs/requirements/nginx/tools/; fi"
 
 prep: generate_certs
-	bash -c "if [[ ! -f ./srcs/.env ]]; then echo 'Error: .env file not created in srcs folder'; false; fi"
+	@bash -c "if [[ ! -f ./srcs/.env ]]; then echo 'Error: .env file not created in srcs folder'; false; fi"
 	@bash -c "if [ ! -d ~/data/mariadb ]; then mkdir ~/data/mariadb; fi"
 	@bash -c "if [ ! -d ~/data/wordpress ]; then mkdir ~/data/wordpress; fi"
 	@sudo bash -c "if ! grep -q '$(DOMAIN_NAME)' /etc/hosts; then sudo echo '127.0.0.1 $(DOMAIN_NAME)' >> /etc/hosts; fi"
@@ -40,4 +40,4 @@ fclean: clean
 	@sudo rm -rf ~/data/wordpress/*
 
 
-.PHONY = prep re clean fclean 
+.PHONY = generate_certs prep re clean fclean 
