@@ -41,4 +41,4 @@ RUN useradd -m -s /bin/bash -G sudo,www-data tempUser
 WORKDIR /var/www/html
 
 # runs our script as tempUser instead of running on root
-CMD ["bash", "-c", "su tempUser -c '/wp-install-script.sh' && /usr/sbin/php-fpm7.4 -F"]
+ENTRYPOINT ["bash", "-c", "su tempUser -c '/wp-install-script.sh' && /usr/sbin/php-fpm7.4 -F"]

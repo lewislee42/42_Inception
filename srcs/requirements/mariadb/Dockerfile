@@ -17,4 +17,4 @@ RUN chmod 0777 /var/run/mysqld
 RUN chmod 0777 ./entrypoint.sh
 
 # run our script
-CMD ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
