@@ -4,12 +4,9 @@ FROM debian:bullseye
 RUN apt-get update 
 RUN apt-get install nginx -y
 
-# copy our config, script and certs over
+# copy our config certs over
 COPY ./conf /etc/nginx/nginx.conf
 COPY ./tools/* /
 
-# change our script permissions
-RUN chmod +x /script.sh
-
-# run our script during runtime
-ENTRYPOINT ["/script.sh"]
+# run nginx in the forground
+ENTRYPOINT ["nginx","-g", "daemon off;"]
