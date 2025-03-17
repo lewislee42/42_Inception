@@ -89,4 +89,3 @@ Error Handling:
 Add: A try_files or error page directive as a backup.
 Why: Improves user experience on failure.
 
-REMINDER TO CLEAR SECRETS FILE

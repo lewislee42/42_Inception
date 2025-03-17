@@ -13,7 +13,6 @@
 NAME = Inception
 SRCDIR = srcs
 DOCKER_COMPOSE_FILE = docker-compose.yml
-SECRETS_FILES = secrets/dhparam.pem secrets/cert.pem secrets/cert.key
 DOMAIN_NAME = lewis.42.fr
 
 all: $(NAME)
@@ -23,6 +22,7 @@ generate_certs:
 
 prep: generate_certs
 	@bash -c "if [[ ! -f ./srcs/.env ]]; then echo 'Error: .env file not created in srcs folder'; false; fi"
+	@bash -c "if [ ! -d ~/data ]; then mkdir ~/data; fi"
 	@bash -c "if [ ! -d ~/data/mariadb ]; then mkdir ~/data/mariadb; fi"
 	@bash -c "if [ ! -d ~/data/wordpress ]; then mkdir ~/data/wordpress; fi"
 	@sudo bash -c "if ! grep -q '$(DOMAIN_NAME)' /etc/hosts; then sudo echo '127.0.0.1 $(DOMAIN_NAME)' >> /etc/hosts; fi"
@@ -36,8 +36,6 @@ clean:
 	@sudo docker compose -f $(SRCDIR)/$(DOCKER_COMPOSE_FILE) -v down
 
 fclean: clean
-	@sudo rm -rf ~/data/mariadb/*
-	@sudo rm -rf ~/data/wordpress/*
-
+	@sudo rm -rf ~/data
 
 .PHONY = generate_certs prep re clean fclean 
