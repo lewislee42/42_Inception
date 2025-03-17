@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # change the configurations for mariadb
-sed -i "s/\= mysql/\= root/1" /etc/mysql/mariadb.conf.d/50-server.cnf # could be a security risk
-sed -i "s/\= 127\.0\.0\.1/\= 0\.0\.0\.0/1" /etc/mysql/mariadb.conf.d/50-server.cnf # could be a security risk
+sed -i "s/\= 127\.0\.0\.1/\= 0\.0\.0\.0/1" /etc/mysql/mariadb.conf.d/50-server.cnf
 
 # start mariadb
 service mariadb start
