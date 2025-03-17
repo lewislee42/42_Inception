@@ -19,7 +19,6 @@ http {
 
 	include /etc/nginx/mime.types;
 
-
 	server {
 		listen 443 ssl http2;
 		listen [::]:443 ssl http2;
@@ -37,22 +36,20 @@ http {
 			fastcgi_param SCRIPT_FILENAME $document_root/index.php;
 		}
 
-		location ~ \.php$ {
+
+		location ~ \.php/?$ {
+			rewrite ^(.+)/$ $1 break;
+			try_files $uri =404;
 			include fastcgi_params;
 			fastcgi_pass wordpress:9000;
 			fastcgi_index index.php;
 			fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
 		}
 
-		location ~* ^(.+)\.(css|ico)/$ {
-			rewrite ^(.+)/$ $1 break;
-			try_files $1 =404;
-		}
-
 		location / {
+			rewrite ^(.+)/$ $1 break;
 			try_files $uri $uri/ =404;
 		}
-
 	}
 
 	server {
