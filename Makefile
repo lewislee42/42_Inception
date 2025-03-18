@@ -12,7 +12,7 @@
 
 NAME = Inception
 DOCKER_COMPOSE_FILE := docker-compose.yml
-DOMAIN_NAME = $(shell awk -F '/^DOMAIN_NAME=/ {print $$2}' ./srcs/.env)
+DOMAIN_NAME = $(shell awk -F= '/^DOMAIN_NAME=/ {print $$2}' ./srcs/.env)
 
 all: $(NAME)
 
