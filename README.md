@@ -6,7 +6,7 @@ This project expects you to run it on a linux machine.
 
 # Requirements
 First make sure that the machine that you want to run this project on is a linux machine (either by using virtualbox or your main machine but this is not recommended as it may change some files that you do not want changed)
-After you have your linux installed you then have to install git & make (if you run into a user not in sudoers file error you can head here [user not in sudoers file])
+After you have your linux installed you then have to install git & make & a text editor of your choice to edit the env (if you run into a user not in sudoers file error you can head here [user not in sudoers file])
 Since we are using dockers for this project please make sure to install dockers following these instruction[https://docs.docker.com/engine/install/]
 Make sure to run `cat .env.example > .env` and then fill out the env
 Also change the domain name in the `Makefile` to match the one you entered in the env
