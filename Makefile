@@ -36,7 +36,9 @@ clean:
 	@sudo docker compose -f srcs/$(DOCKER_COMPOSE_FILE) -v down
 
 fclean: clean
-	@sudo cp $(USER_HOME)/data/hosts.backup /etc/hosts
-	@sudo rm -rf $(USER_HOME)/data
+	@bash -c 'if [ -f $(USER_HOME)/data/hosts.backup ]; then sudo cp $(USER_HOME)/data/hosts.backup /etc/hosts; sudo rm -f $(USER_HOME)/data/hosts.backup; fi'
+	@bash -c 'if [ -d $(USER_HOME)/data/mariadb ]; then sudo rm -rf $(USER_HOME)/data/mariadb; fi'
+	@bash -c 'if [ -d $(USER_HOME)/data/wordpress ]; then sudo rm -rf $(USER_HOME)/data/wordpress; fi'
+	@bash -c 'if [ "$$(ls $(USER_HOME)/data/ | wc -l)" -eq 0]; then rm -rf $(USER_HOME)/data; fi'
 
 .PHONY = generate_certs prep re clean fclean 
