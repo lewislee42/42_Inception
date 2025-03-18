@@ -13,6 +13,7 @@
 NAME = Inception
 DOCKER_COMPOSE_FILE := docker-compose.yml
 DOMAIN_NAME = $(shell awk -F= '/^DOMAIN_NAME=/ {print $$2}' ./srcs/.env)
+USER_HOME = $(shell awk -F= '/^USER_HOME=/ {print $$2}' ./srcs/.env)
 
 all: $(NAME)
 
@@ -21,10 +22,10 @@ generate_certs:
 
 prep: generate_certs
 	@bash -c "if [[ ! -f ./srcs/.env ]]; then echo 'Error: .env file not created in srcs folder'; false; fi"
-	@bash -c "if [ ! -d ~/data ]; then mkdir ~/data; fi"
-	@bash -c "if [ ! -d ~/data/mariadb ]; then mkdir ~/data/mariadb; fi"
-	@bash -c "if [ ! -d ~/data/wordpress ]; then mkdir ~/data/wordpress; fi"
-	@sudo bash -c "if ! grep -q '$(DOMAIN_NAME)' /etc/hosts; then sudo cat /etc/hosts > /etc/hosts.backup; sudo echo '127.0.0.1 $(DOMAIN_NAME)' >> /etc/hosts; fi"
+	@bash -c "if [ ! -d $(USER_HOME)/data ]; then mkdir $(USER_HOME)/data; fi"
+	@bash -c "if [ ! -d $(USER_HOME)/data/mariadb ]; then mkdir $(USER_HOME)/data/mariadb; fi"
+	@bash -c "if [ ! -d $(USER_HOME)/data/wordpress ]; then mkdir $(USER_HOME)/data/wordpress; fi"
+	@sudo bash -c "if ! grep -q '$(DOMAIN_NAME)' /etc/hosts; then sudo cp /etc/hosts $(USER_HOME)/data/hosts.backup; sudo echo '127.0.0.1 $(DOMAIN_NAME)' >> /etc/hosts; fi"
 	
 $(NAME): prep
 	@sudo docker compose -f srcs/$(DOCKER_COMPOSE_FILE) up --build -d
@@ -35,7 +36,7 @@ clean:
 	@sudo docker compose -f srcs/$(DOCKER_COMPOSE_FILE) -v down
 
 fclean: clean
-	@sudo cat /etc/hosts.backup > /etc/hosts && sudo rm /etc/hosts.backup
-	@sudo rm -rf ~/data
+	@sudo cp $(USER_HOME)/data/hosts.backup /etc/hosts
+	@sudo rm -rf $(USER_HOME)/data
 
 .PHONY = generate_certs prep re clean fclean 
