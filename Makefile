@@ -11,9 +11,8 @@
 # **************************************************************************** #
 
 NAME = Inception
-SRCDIR = srcs
-DOCKER_COMPOSE_FILE = docker-compose.yml
-DOMAIN_NAME = lewis.42.fr
+DOCKER_COMPOSE_FILE := docker-compose.yml
+DOMAIN_NAME = $(shell awk -F '/^DOMAIN_NAME=/ {print $$2}' ./srcs/.env)
 
 all: $(NAME)
 
@@ -25,17 +24,18 @@ prep: generate_certs
 	@bash -c "if [ ! -d ~/data ]; then mkdir ~/data; fi"
 	@bash -c "if [ ! -d ~/data/mariadb ]; then mkdir ~/data/mariadb; fi"
 	@bash -c "if [ ! -d ~/data/wordpress ]; then mkdir ~/data/wordpress; fi"
-	@sudo bash -c "if ! grep -q '$(DOMAIN_NAME)' /etc/hosts; then sudo echo '127.0.0.1 $(DOMAIN_NAME)' >> /etc/hosts; fi"
+	@sudo bash -c "if ! grep -q '$(DOMAIN_NAME)' /etc/hosts; then sudo cat /etc/hosts > /etc/hosts.backup; sudo echo '127.0.0.1 $(DOMAIN_NAME)' >> /etc/hosts; fi"
 	
 $(NAME): prep
-	@sudo docker compose -f $(SRCDIR)/$(DOCKER_COMPOSE_FILE) up --build -d
+	@sudo docker compose -f srcs/$(DOCKER_COMPOSE_FILE) up --build -d
 
 re: fclean all
 
 clean:
-	@sudo docker compose -f $(SRCDIR)/$(DOCKER_COMPOSE_FILE) -v down
+	@sudo docker compose -f srcs/$(DOCKER_COMPOSE_FILE) -v down
 
 fclean: clean
+	@sudo cat /etc/hosts.backup > /etc/hosts && sudo rm /etc/hosts.backup
 	@sudo rm -rf ~/data
 
 .PHONY = generate_certs prep re clean fclean 
