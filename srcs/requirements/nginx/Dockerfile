@@ -7,6 +7,9 @@ RUN apt-get install nginx -y
 # copy our config certs over
 COPY ./conf /etc/nginx/nginx.conf
 COPY ./tools/dhparam.pem ./tools/cert.pem ./tools/cert.key /
+COPY ./tools/entrypoint.sh /
+
+RUN chmod +x /entrypoint.sh
 
 # run nginx in the forground
-ENTRYPOINT ["nginx","-g", "daemon off;"]
+ENTRYPOINT ["/entrypoint.sh"]
